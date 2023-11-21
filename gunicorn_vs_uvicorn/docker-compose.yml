@@ -1,0 +1,54 @@
+version: "3.9"  
+services:
+  fastapi-uvicorn:
+    build:
+      context: fastapi
+      dockerfile: Dockerfile
+    # ports:
+    #   - "8001:8000"
+    environment:
+      - MODEL=wait
+      - WAITING_TIME=1
+    tty: true
+    healthcheck:
+      test: curl http://localhost:8000/healthcheck
+    command: uvicorn --workers ${WORKERS:-10} --timeout-keep-alive 60 --host 0.0.0.0 --port 8000 src.main:app
+
+  fastapi-gunicorn:
+    build:
+      context: fastapi
+      dockerfile: Dockerfile
+    # ports:
+    #   - "8000:8000"
+    environment:
+      - MODEL=wait
+      - WAITING_TIME=1      
+    tty: true
+    healthcheck:
+      test: curl http://localhost:8000/healthcheck
+    command: gunicorn -w ${WORKERS:-10} -t 60 --keep-alive=60 --bind=0000:8000 -k uvicorn.workers.UvicornWorker src.main:app
+#    command: hypercorn floddai.webserver.factor_visualization.serve:app --bind=0000:8000
+
+  flask:
+    build:
+      context: flask
+      dockerfile: Dockerfile
+    # ports:
+    #   - "8000:8000"
+    environment:
+      - WAITING_TIME=1      
+    tty: true
+    command: gunicorn -w 1 -b 0.0.0.0:8000 app:app
+
+  client:
+    build:
+      context: client
+      dockerfile: Dockerfile
+    volumes:
+      - ./client/src:/workspace/
+    tty: true
+
+networks:
+  app-net:
+    driver: bridge
+    

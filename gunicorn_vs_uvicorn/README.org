@@ -1,0 +1,17 @@
+* gunicorn vs uvicorn
+
+
+** start
+#+begin_src shell
+docker compose up -d
+#+end_src
+
+** run sample code
+
+#+begin_src shell
+  docker compose exec client /bin/bash
+#+end_src
+
+#+begin_src shell
+python main.py
+#+end_src
